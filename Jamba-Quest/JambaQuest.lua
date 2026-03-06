@@ -1463,7 +1463,7 @@ function AJM:DoAcceptQuest( sender )
 		AJM.isInternalCommand = true
 		DebugMessage( "DoAcceptQuest" )
 		AcceptQuest()
-		AJM:JambaSendMessageToTeam( AJM.db.messageArea, L["Accepted Quest: A"]( GetTitleText() ) )
+		-- AJM:JambaSendMessageToTeam( AJM.db.messageArea, L["Accepted Quest: A"]( GetTitleText() ) )
 		AJM.isInternalCommand = false	
 	end
 end
