@@ -147,6 +147,8 @@ AJM.totalMembersDisplayed = 0
 AJM.teamListCreated = false	
 AJM.refreshHideTeamListControlsPending = false
 AJM.refreshShowTeamListControlsPending = false
+-- pending visibility update if attempted in combat
+AJM.refreshVisibilityPending = false
 
 -------------------------------------------------------------------------------------------------------------
 -- Team Frame.
@@ -314,6 +316,13 @@ function AJM:HideTeamListCommand()
 end
 
 function AJM:SetTeamListVisibility()
+	-- avoid calling protected frame methods while in combat
+	if InCombatLockdown() == 1 then
+		-- remember that we need to update once we leave combat
+		AJM.refreshVisibilityPending = true
+		return
+	end
+	-- if the user has opted to hide the list in combat we still honour the leave‑combat event
 	if CanDisplayTeamList() == true then
 		JambaDisplayTeamListFrame:ClearAllPoints()
 		JambaDisplayTeamListFrame:SetPoint( AJM.db.framePoint, UIParent, AJM.db.frameRelativePoint, AJM.db.frameXOffset, AJM.db.frameYOffset )
@@ -1767,6 +1776,12 @@ function AJM:PARTY_MEMBERS_CHANGED( event, ... )
 end
 
 function AJM:PLAYER_REGEN_ENABLED( event, ... )
+	-- first handle any visibility updates that were deferred during combat
+	if AJM.refreshVisibilityPending == true then
+		AJM.refreshVisibilityPending = false
+		AJM:SetTeamListVisibility()
+	end
+	-- the existing hide‑in‑combat option still needs to refresh
 	if AJM.db.hideTeamListInCombat == true then
 		AJM:SetTeamListVisibility()
 	end
