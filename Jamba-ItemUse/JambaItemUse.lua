@@ -303,6 +303,11 @@ function AJM.ItemOnDragStop( itemContainerFrame )
 end
 
 function AJM:UpdateItemsInBar()
+	-- avoid secure calls while in combat and schedule another update
+	if InCombatLockdown() == 1 then
+		AJM.refreshUpdateItemsInBarPending = true
+		return
+	end
 	for iterateItems = 1, AJM.maximumNumberOfItems, 1 do
 		local itemContainer = AJM.itemContainer[iterateItems]
 		if itemContainer == nil then
