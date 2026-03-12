@@ -132,6 +132,8 @@ AJM.itemSize = 40
 AJM.refreshItemUseControlsPending = false
 AJM.refreshUpdateItemsInBarPending = false
 AJM.refreshUpdateBindingsPending = false
+-- pending flag used when a visibility change is requested during combat lockdown
+AJM.refreshItemUseVisibilityPending = false
 AJM.maximumNumberOfItems = 10
 
 -------------------------------------------------------------------------------------------------------------
@@ -224,6 +226,11 @@ function AJM:HideItemUseCommand()
 end
 
 function AJM:SetItemUseVisibility()
+	-- don't touch protected frames in combat; schedule a refresh when combat ends
+	if InCombatLockdown() == 1 then
+		AJM.refreshItemUseVisibilityPending = true
+		return
+	end
 	if CanDisplayItemUse() == true then
 		JambaItemUseFrame:ClearAllPoints()
 		JambaItemUseFrame:SetPoint( AJM.db.framePoint, UIParent, AJM.db.frameRelativePoint, AJM.db.frameXOffset, AJM.db.frameYOffset )
@@ -747,6 +754,7 @@ function AJM:JambaOnSettingsReceived( characterName, settings )
 end
 
 function AJM:PLAYER_REGEN_ENABLED()
+	-- combat just ended, apply any deferred updates
 	if AJM.db.hideItemUseInCombat == true then
 		AJM:SetItemUseVisibility()
 	end
@@ -762,11 +770,20 @@ function AJM:PLAYER_REGEN_ENABLED()
 		AJM:UPDATE_BINDINGS()
 		AJM.refreshUpdateBindingsPending = false
 	end
+	if AJM.refreshItemUseVisibilityPending == true then
+		AJM:SetItemUseVisibility()
+		AJM.refreshItemUseVisibilityPending = false
+	end
 end
 
 function AJM:PLAYER_REGEN_DISABLED()
+	-- entering combat; if the user wants the bar hidden in combat defer to the visibility logic
 	if AJM.db.hideItemUseInCombat == true then
-		JambaItemUseFrame:Hide()
+		if InCombatLockdown() == 1 then
+			AJM.refreshItemUseVisibilityPending = true
+		else
+			JambaItemUseFrame:Hide()
+		end
 	end
 end
 
