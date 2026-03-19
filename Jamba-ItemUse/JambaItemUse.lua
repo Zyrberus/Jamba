@@ -260,7 +260,10 @@ function AJM.ItemOnPreClick( itemContainerFrame )
 	if itemId ~= nil then
 		local itemCount = GetItemCount( itemId, false, true )
 		if itemCount == 0 then
-			local name, link, quality, itemLevel, requiredLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo( itemId )
+			local name = GetItemInfo( itemId )
+			if not name then
+				name = tostring(itemId) or "item"
+			end
 			AJM:JambaSendMessageToTeam( AJM.db.messageArea, L["I do not have X."]( name ) )
 		end
 	end
